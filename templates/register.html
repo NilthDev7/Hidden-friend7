@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="card" style="max-width: 400px; margin: 40px auto; padding: 2rem;">
+        <h2 style="text-align: center;">Cadastrar</h2>
+        <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">Crie sua conta familiar</p>
+        <form method="POST">
+            <label>Nome</label>
+            <input type="text" name="nome" required>
+            <label>E-mail</label>
+            <input type="email" name="email" required>
+            <label>Senha</label>
+            <input type="password" name="senha" required>
+            <button type="submit" class="btn btn-success" style="margin-top: 1rem; width: 100%;">CADASTRAR</button>
+        </form>
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <a href="/login" style="color: var(--primary); font-size: 0.9rem;">Já tenho conta</a>
+        </div>
+    </div>
+{% endblock %}

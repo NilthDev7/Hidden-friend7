@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="reveal-container" style="text-align: center; max-width: 600px; margin: 40px auto; position: relative;">
+        <p style="color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; margin-bottom: 2rem;">Evento: {{ evento_nome }}</p>
+        
+        <div id="revelationSection">
+             <div class="mystery-box" onclick="reveal()">
+                <div class="gift-icon">🎁</div>
+                <p>Clique para Revelar seu Destino!</p>
+             </div>
+        </div>
+
+        <div id="powerUpReveal" style="display: none;">
+            <div class="light-rays"></div>
+            <div class="card reveal-card">
+                <div class="vfx-shake">
+                    <div style="margin-bottom: 1.5rem; position: relative; display: inline-block;">
+                        {% if amigo.foto %}
+                            <img src="data:image/png;base64,{{ amigo.foto }}" class="friend-photo">
+                        {% else %}
+                            <div class="friend-photo-placeholder">👤</div>
+                        {% endif %}
+                        <div class="level-up-tag">Sorteado!</div>
+                    </div>
+                    
+                    <h2 class="friend-name">{{ amigo.nome }}</h2>
+                    <div class="rarity-bar"></div>
+                    
+                    <div style="background: rgba(128,128,128,0.1); padding: 10px; border-radius: 8px; margin-bottom: 2rem; display: flex; justify-content: center; gap: 20px;">
+                        <div><small style="color: var(--text-dim); display: block;">Mínimo</small> <b>R$ {{ evento.valor_min }}</b></div>
+                        <div><small style="color: var(--text-dim); display: block;">Máximo</small> <b>R$ {{ evento.valor_max }}</b></div>
+                    </div>
+                    
+                    {% if amigo.lista_desejos %}
+                    <div class="wishlist-section">
+                        <h3>📜 Lista de Desejos</h3>
+                        <p>{{ amigo.lista_desejos }}</p>
+                    </div>
+                    {% else %}
+                    <div class="wishlist-section" style="background: rgba(0,0,0,0.03); border-left-color: var(--text-dim);">
+                        <h3 style="color: var(--text-dim);">📜 Dica de Presente</h3>
+                        <p id="randomDica" style="color: var(--text-dim); font-style: italic;"></p>
+                    </div>
+                    <script>
+                        const dicas = [
+                            "Este amigo é um mistério... Use sua criatividade! 🧐",
+                            "Parece que este amigo gosta de surpresas! 🎁",
+                            "Nenhuma lista definida. Que tal algo artesanal ou um bom chocolate? 🍫",
+                            "Shhh! O segredo aqui é o próprio presente. Boa sorte! 🍀",
+                            "Um segredo: este amigo adora surpresas inesperadas! ✨"
+                        ];
+                        document.getElementById('randomDica').innerText = dicas[Math.floor(Math.random() * dicas.length)];
+                    </script>
+                    {% endif %}
+
+                    <!-- SECRET CHAT -->
+                    <div style="text-align: left; margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">💬 Chat Secreto Anônimo</h3>
+                        
+                        <div id="msgContainer" class="chat-container" style="display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Mensagens serão carregadas via JS -->
+                        </div>
+
+                        <div id="typingIndicator" style="display: none; padding: 5px 15px; font-size: 0.8rem; color: var(--text-dim); font-style: italic;">
+                            Sorteado está digitando... <div class="typing-dots"><span></span><span></span><span></span></div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <input type="text" id="chatMsg" placeholder="Diga algo anônimamente..." style="margin: 0; flex: 1;" onkeypress="if(event.key==='Enter') sendMessage()">
+                            <button onclick="sendMessage()" class="btn btn-primary">Enviar</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="/dashboard" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">ACESSAR DASHBOARD</a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .mystery-box {
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            padding: 4rem 2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4);
+            color: white;
+        }
+        .mystery-box:hover { transform: scale(1.05) rotate(2deg); }
+        .gift-icon { font-size: 5rem; margin-bottom: 1rem; animation: bounce 2s infinite; }
+
+        .reveal-card {
+            background: var(--card-bg);
+            color: var(--text);
+            padding: 3rem;
+            border-radius: 24px;
+            border: 4px solid #ffd700;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .friend-photo {
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 8px solid #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .friend-photo-placeholder {
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 5rem;
+            border: 8px solid #ffd700;
+        }
+
+        .friend-name {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--text);
+            margin: 1rem 0;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+
+        .level-up-tag {
+            position: absolute;
+            bottom: -10px; left: 50%;
+            transform: translateX(-50%);
+            background: #ff4757;
+            color: white;
+            padding: 5px 20px;
+            border-radius: 99px;
+            font-weight: 900;
+            font-size: 0.9rem;
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
+            white-space: nowrap;
+        }
+
+        .rarity-bar {
+            height: 8px;
+            background: linear-gradient(to right, #ffd700, #ffa500, #ffd700);
+            border-radius: 4px;
+            margin: 1.5rem auto;
+            width: 60%;
+            animation: glow 1.5s infinite;
+        }
+
+        .wishlist-section {
+            background: rgba(255, 215, 0, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: left;
+            border-left: 5px solid #ffa000;
+        }
+        .wishlist-section h3 { font-size: 1rem; margin-bottom: 0.5rem; color: #ffa000; }
+        .wishlist-section p { color: var(--text); line-height: 1.5; margin: 0; }
+
+        .chat-container {
+            background: rgba(0,0,0,0.03); 
+            border-radius: 12px; 
+            padding: 15px; 
+            margin-bottom: 1rem; 
+            border: 1px solid var(--border);
+            max-height: 200px; 
+            overflow-y: auto;
+        }
+        body.dark-mode .chat-container { background: rgba(255,255,255,0.03); }
+
+        .light-rays {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 1000px; height: 1000px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(255,215,0,0.2) 0%, rgba(255,215,0,0) 70%);
+            z-index: 1;
+            animation: rotateRays 10s linear infinite;
+        }
+
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        @keyframes rotateRays { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+        @keyframes glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .vfx-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        const eventoId = {{ evento.id }};
+        const amigoId = {{ amigo.id }};
+        let lastMsgCount = 0;
+
+        async function syncChat() {
+            try {
+                const res = await fetch(`/api/chat/sync/${eventoId}/${amigoId}`);
+                const data = await res.json();
+                
+                // Atualiza indicador de digitando
+                document.getElementById('typingIndicator').style.display = data.is_typing ? 'block' : 'none';
+
+                if(data.mensagens.length !== lastMsgCount) {
+                    const container = document.getElementById('msgContainer');
+                    container.innerHTML = '';
+                    data.mensagens.forEach(m => {
+                        const div = document.createElement('div');
+                        div.style.marginBottom = '8px';
+                        div.style.textAlign = m.eu ? 'right' : 'left';
+                        
+                        const bubble = document.createElement('div');
+                        bubble.className = 'chat-bubble';
+                        bubble.style.display = 'inline-block';
+                        bubble.style.padding = '8px 15px';
+                        bubble.style.borderRadius = m.eu ? '15px 15px 0 15px' : '15px 15px 15px 0';
+                        bubble.style.background = m.eu ? 'var(--primary)' : 'rgba(128,128,128,0.1)';
+                        bubble.style.color = m.eu ? 'white' : 'var(--text)';
+                        bubble.style.fontSize = '0.9rem';
+                        bubble.innerText = m.texto;
+                        
+                        const time = document.createElement('div');
+                        time.style.fontSize = '0.7rem';
+                        time.style.color = 'var(--text-dim)';
+                        time.style.marginTop = '2px';
+                        time.innerText = (m.eu ? 'Você ' : 'Amigo ') + m.data;
+
+                        div.appendChild(bubble);
+                        div.appendChild(time);
+                        container.appendChild(div);
+                    });
+                    container.scrollTop = container.scrollHeight;
+                    lastMsgCount = data.mensagens.length;
+                    
+                    if(lastMsgCount > 0) {
+                        const dashBtn = document.querySelector('a[href="/dashboard"]');
+                        if(dashBtn) dashBtn.innerText = "MENSAGENS SINCRONIZADAS ✅";
+                    }
+                }
+            } catch(e) { console.error("Erro no Sync:", e); }
+        }
+
+        async function sendTyping() {
+            fetch('/api/chat/typing', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ evento_id: eventoId, destinatario_id: amigoId })
+            });
+        }
+
+        document.getElementById('chatMsg').addEventListener('input', sendTyping);
+
+        async function sendMessage() {
+            const input = document.getElementById('chatMsg');
+            const txt = input.value.trim();
+            if(!txt) return;
+            
+            input.value = '';
+            await fetch('/chat/enviar/api', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    evento_id: eventoId,
+                    destinatario_id: amigoId,
+                    mensagem: txt
+                })
+            });
+            syncChat();
+        }
+
+        function reveal() {
+            document.getElementById('revelationSection').style.display = 'none';
+            document.getElementById('powerUpReveal').style.display = 'block';
+            syncChat();
+            setInterval(syncChat, 3000); // Polling cada 3 segundos
+            
+            // Confetti
+            var duration = 3 * 1000;
+            var end = Date.now() + duration;
+            (function frame() {
+              confetti({particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ffd700', '#ffa500', '#ff4757']});
+              confetti({particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ffd700', '#ffa500', '#ff4757']});
+              if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+    </script>
+{% endblock %}

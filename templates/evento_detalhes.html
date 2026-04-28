@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="admin-nav">
+        <h1>Sorteio: {{ evento.nome }}</h1>
+        <a href="/admin" class="btn btn-outline">⬅ Voltar ao Painel</a>
+    </div>
+
+    <!-- STATUS DO SORTEIO -->
+    <div class="card" style="text-align: center; border-left: 5px solid {% if evento.sorteado %}var(--success){% else %}#fcd34d{% endif %}">
+        {% if evento.sorteado %}
+            <h2 style="color: var(--success); margin-bottom: 0.5rem;">✅ Sorteio Realizado</h2>
+            <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Os pares foram definidos e estão prontos para revelação.</p>
+            <form action="/evento/cancelar" method="POST" onsubmit="event.preventDefault(); showConfirm('Isso apagará o sorteio atual e os pares definidos. Continuar?', () => this.submit());">
+                <input type="hidden" name="evento_id" value="{{ evento.id }}">
+                <button type="submit" class="btn btn-outline" style="color: var(--danger);">CANCELAR SORTEIO E LIMPAR PARES</button>
+            </form>
+        {% else %}
+            <h2 style="color: #d97706; margin-bottom: 0.5rem;">⏳ Aguardando Sorteio</h2>
+            <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Adicione os participantes e clique no botão abaixo para sortear.</p>
+            {% if evento.participantes|length >= 2 %}
+                <form action="/evento/sortear" method="POST">
+                    <input type="hidden" name="evento_id" value="{{ evento.id }}">
+                    <button type="submit" class="btn btn-success" style="padding: 1rem 2.5rem; font-size: 1rem;">REALIZAR SORTEIO AGORA 🎲</button>
+                </form>
+            {% else %}
+                <p style="color: var(--danger); font-size: 0.9rem;">(Mínimo de 2 participantes para sortear)</p>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; align-items: flex-start;">
+        
+        <!-- ADICIONAR PARTICIPANTES -->
+        <div class="card" style="padding: 1.5rem;">
+            <h3>Adicionar Participantes</h3>
+            {% if usuarios_fora %}
+                <form action="/evento/add-participantes" method="POST" id="formAdd">
+                    <input type="hidden" name="evento_id" value="{{ evento.id }}">
+                    <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.8rem; color: var(--text-dim);">Disponíveis: {{ usuarios_fora|length }}</span>
+                        <button type="button" class="btn btn-outline" style="padding: 2px 8px; font-size: 0.7rem;" onclick="selectAll()">Selecionar Todos</button>
+                    </div>
+                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 10px;">
+                        {% for u in usuarios_fora %}
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid var(--border); cursor: pointer;">
+                            <input type="checkbox" name="usuario_ids" value="{{ u.id }}" style="width: auto; margin: 0;" class="user-check">
+                            <span>{{ u.nome }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;">ADICIONAR SELECIONADOS</button>
+                </form>
+            {% else %}
+                <p style="color: var(--text-dim); font-size: 0.9rem;">Todos os usuários já foram adicionados.</p>
+            {% endif %}
+        </div>
+
+        <!-- REGRAS DE EXCLUSÃO -->
+        <div class="card" style="padding: 1.5rem;">
+            <h3>Regras de Exclusão 🚫</h3>
+            <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1.5rem;">Defina quem <b>NÃO</b> pode tirar quem.</p>
+            
+            <form action="/restricao/add" method="POST" style="margin-bottom: 2rem;">
+                <div class="form-group">
+                    <label>Participante</label>
+                    <select name="usuario_id" required>
+                        {% for p in evento.participantes %}
+                        <option value="{{ p.usuario.id }}">{{ p.usuario.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Não pode tirar...</label>
+                    <select name="excluido_id" required>
+                        {% for u in todos_usuarios %}
+                        <option value="{{ u.id }}">{{ u.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-outline" style="width: 100%;">Adicionar Regra</button>
+            </form>
+
+            <div style="max-height: 200px; overflow-y: auto; font-size: 0.85rem;">
+                {% for r in restricoes %}
+                    <div style="padding: 5px 0; border-bottom: 1px solid var(--border);">
+                        <b>{{ r.usuario.nome }}</b> ❌ não tira <b>{{ r.excluido.nome if r.excluido else 'Usuário Removido' }}</b>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- LISTA DO EVENTO -->
+        <div class="card" style="padding: 1.5rem;">
+            <h3>Lista do Evento ({{ evento.participantes|length }})</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Ações</th>
+                        {% if evento.sorteado %}
+                        <th>Notificar</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in evento.participantes %}
+                    <tr>
+                        <td>
+                             <div style="display: flex; align-items: center; gap: 10px;">
+                                {% if p.usuario.foto %}
+                                    <img src="data:image/png;base64,{{ p.usuario.foto }}" class="avatar" style="width: 30px; height: 30px;">
+                                {% else %}
+                                    <div class="avatar" style="width: 30px; height: 30px; text-align: center; line-height: 30px; font-size: 10px;">👤</div>
+                                {% endif %}
+                                {{ p.usuario.nome }}
+                             </div>
+                        </td>
+                        <td>
+                            {% if not evento.sorteado %}
+                            <form action="/evento/remove-participante" method="POST">
+                                <input type="hidden" name="participante_id" value="{{ p.id }}">
+                                <button type="submit" class="btn btn-outline" style="color: var(--danger); border: none; padding: 0;">❌ Remover</button>
+                            </form>
+                            {% else %}
+                            ---
+                            {% endif %}
+                        </td>
+                        {% if evento.sorteado %}
+                        <td>
+                            <button onclick="notifyZap('{{ p.usuario.nome }}', '{{ evento.nome }}')" class="btn" style="background: #25D366; color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; border: none; cursor: pointer;">
+                                Enviar Zap 📱
+                            </button>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                    {% if not evento.participantes %}
+                    <tr><td colspan="{% if evento.sorteado %}3{% else %}2{% endif %}" style="text-align: center; color: var(--text-dim);">Nenhum participante ainda.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function notifyZap(nome, evento) {
+            const mensagem = `Olá ${nome}! O sorteio do seu Amigo Oculto (${evento}) já foi realizado! 🎉\n\nAcesse agora para ver quem você tirou: ${window.location.origin}`;
+            const url = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
+            window.open(url, '_blank');
+        }
+
+        function selectAll() {
+            const checks = document.querySelectorAll('.user-check');
+            checks.forEach(c => c.checked = true);
+        }
+    </script>
+{% endblock %}
