@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="admin-nav">
+        <h1>Who's the Friend?</h1>
+        <div>
+            <a href="/dashboard" class="btn btn-outline">🏠 Início</a>
+            <a href="/logout" class="btn btn-danger">Sair</a>
+        </div>
+    </div>
+
+    <!-- SEÇÃO EVENTOS -->
+    <div class="card">
+        <h2>Sorteios / Eventos</h2>
+        <form action="/evento/criar" method="POST" style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: flex-end;">
+            <div>
+                <label>Nome do Novo Sorteio</label>
+                <input type="text" name="nome" placeholder="Ex: Natal da Família" required style="margin-bottom: 0;">
+            </div>
+            <div>
+                <label>Val. Mín (R$)</label>
+                <input type="number" name="valor_min" value="50" step="0.01" style="margin-bottom: 0;">
+            </div>
+            <div>
+                <label>Val. Máx (R$)</label>
+                <input type="number" name="valor_max" value="100" step="0.01" style="margin-bottom: 0;">
+            </div>
+            <button type="submit" class="btn btn-primary">Criar Evento</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Evento</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in eventos %}
+                <tr>
+                    <td><strong>{{ e.nome }}</strong></td>
+                    <td>
+                        {% if e.sorteado %}
+                            <span style="color: var(--success);">● Sorteado</span>
+                        {% else %}
+                            <span style="color: var(--text-dim);">○ Pendente</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/evento/{{ e.id }}" class="btn btn-outline">Gerenciar</a>
+                        <form action="/evento/deletar/{{ e.id }}" method="POST" style="display: inline;" onsubmit="event.preventDefault(); showConfirm('Deseja realmente apagar este sorteio?', () => this.submit());">
+                            <button type="submit" class="btn btn-outline" style="color: var(--danger);">Excluir</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- SEÇÃO USUÁRIOS -->
+    <div class="card">
+        <h2>Participantes / Família</h2>
+        <form action="/usuario/criar" method="POST" enctype="multipart/form-data" style="background: rgba(255,255,255,0.03); border: 1px dashed var(--border); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Nome</label>
+                    <input type="text" name="nome" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" name="senha" required>
+                </div>
+                <div class="form-group">
+                    <label>Foto do Perfil</label>
+                    <input type="file" name="foto" accept="image/*" style="padding: 5px;">
+                </div>
+            </div>
+            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; cursor: pointer;">
+                <input type="checkbox" name="is_admin" style="width: auto; margin: 0;"> É Administrador?
+            </label>
+            <button type="submit" class="btn btn-success">ADICIONAR NOVO PARTICIPANTE</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Foto</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Permissão</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in usuarios %}
+                <tr>
+                    <td>
+                        {% if u.foto %}
+                            <img src="data:image/png;base64,{{ u.foto }}" class="avatar">
+                        {% else %}
+                            <div class="avatar" style="text-align: center; line-height: 40px; font-size: 12px;">👤</div>
+                        {% endif %}
+                    </td>
+                    <td>{{ u.nome }}</td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ 'Admin' if u.is_admin else 'Convidado' }}</td>
+                    <td>
+                        <a href="/usuario/editar/{{ u.id }}" class="btn btn-outline">Editar</a>
+                        <form action="/usuario/remover/{{ u.id }}" method="POST" style="display: inline;" onsubmit="event.preventDefault(); showConfirm('Remover este participante permanentemente?', () => this.submit());">
+                            <button type="submit" class="btn btn-outline" style="color: var(--danger);">Remover</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

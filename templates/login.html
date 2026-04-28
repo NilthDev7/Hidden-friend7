@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="card" style="max-width: 400px; margin: 40px auto; padding: 2rem;">
+        <h2 style="text-align: center;">Entrar</h2>
+        <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">Acesse para ver seu amigo oculto</p>
+        <form method="POST">
+            <label>E-mail</label>
+            <input type="email" name="email" required>
+            <label>Senha</label>
+            <input type="password" name="senha" required>
+            <button type="submit" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">ENTRAR AGORA</button>
+        </form>
+    </div>
+{% endblock %}

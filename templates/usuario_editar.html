@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="card" style="max-width: 500px; margin: auto;">
+        <h2>Editar Participante</h2>
+        
+        <form action="/usuario/editar/{{ u.id }}" method="POST" enctype="multipart/form-data">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                {% if u.foto %}
+                    <img src="data:image/png;base64,{{ u.foto }}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
+                {% else %}
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: #e2e8f0; margin: auto; display: flex; align-items: center; justify-content: center; font-size: 2rem;">👤</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Nome Completo</label>
+                <input type="text" name="nome" value="{{ u.nome }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ u.email }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Trocar Senha (deixe em branco para manter)</label>
+                <input type="password" name="senha">
+            </div>
+
+            <div class="form-group">
+                <label>Trocar Foto</label>
+                <input type="file" name="foto" accept="image/*">
+            </div>
+
+            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; cursor: pointer;">
+                <input type="checkbox" name="is_admin" style="width: auto; margin: 0;" {% if u.is_admin %}checked{% endif %}> Administrador
+            </label>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">SALVAR ALTERAÇÕES</button>
+                <a href="/admin" class="btn btn-outline" style="flex: 1;">CANCELAR</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

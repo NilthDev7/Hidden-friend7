@@ -1,0 +1,27 @@
+CREATE DATABASE IF NOT EXISTS amigo_oculto;
+USE amigo_oculto;
+
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    amigo_id INT NULL, -- CAMPO LEGADO, IGNORAR
+    is_admin BOOLEAN DEFAULT FALSE
+) ENGINE=InnoDB;
+
+CREATE TABLE eventos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    sorteado BOOLEAN DEFAULT FALSE
+) ENGINE=InnoDB;
+
+CREATE TABLE evento_participantes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    evento_id INT NOT NULL,
+    usuario_id INT NOT NULL,
+    amigo_id INT NULL,
+    FOREIGN KEY (evento_id) REFERENCES eventos(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    FOREIGN KEY (amigo_id) REFERENCES usuarios(id) ON DELETE SET NULL
+) ENGINE=InnoDB;

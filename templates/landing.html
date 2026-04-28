@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}SecretJoy - O Amigo Oculto Inteligente{% endblock %}
+
+{% block content %}
+    <!-- HERO SECTION -->
+    <section style="text-align: center; padding: 6rem 0; background: radial-gradient(circle at top, rgba(99, 102, 241, 0.15) 0%, transparent 70%);">
+        <h1 style="font-size: 4rem; font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; background: linear-gradient(to right, var(--primary), #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            O Amigo Oculto que sua <br> família e empresa merecem.
+        </h1>
+        <p style="font-size: 1.25rem; color: var(--text-dim); max-width: 600px; margin: 0 auto 3rem;">
+            Sorteios inteligentes, regras de exclusão, chat anônimo e uma experiência de revelação épica. Tudo em um só lugar.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="/login" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem; border-radius: 99px; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);">Começar Agora — É Grátis!</a>
+            <a href="#recursos" class="btn btn-outline" style="padding: 1rem 2.5rem; font-size: 1.1rem; border-radius: 99px;">Ver Recursos</a>
+        </div>
+    </section>
+
+    <!-- RECURSOS -->
+    <section id="recursos" style="padding: 4rem 0;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+            <div class="card" style="text-align: center; border-bottom: 4px solid var(--primary);">
+                <div style="font-size: 3rem; margin-bottom: 1.5rem;">🎯</div>
+                <h3>Sorteio Inteligente</h3>
+                <p style="color: var(--text-dim);">Defina quem não pode tirar quem. Chega de casais se tirando no sorteio!</p>
+            </div>
+            <div class="card" style="text-align: center; border-bottom: 4px solid var(--success);">
+                <div style="font-size: 3rem; margin-bottom: 1.5rem;">💬</div>
+                <h3>Chat Anônimo</h3>
+                <p style="color: var(--text-dim);">Envie mensagens para seu amigo oculto sem revelar sua identidade. Diversão garantida!</p>
+            </div>
+            <div class="card" style="text-align: center; border-bottom: 4px solid #ffd700;">
+                <div style="font-size: 3rem; margin-bottom: 1.5rem;">🎁</div>
+                <h3>Revelação Épica</h3>
+                <p style="color: var(--text-dim);">Animações inspiradas em jogos para tornar o momento da descoberta inesquecível.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING -->
+    <section style="padding: 6rem 0; text-align: center;">
+        <h2 style="font-size: 2.5rem; margin-bottom: 3rem;">Escolha seu Plano</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; max-width: 800px; margin: 0 auto;">
+            <!-- FREE -->
+            <div class="card" style="position: relative; overflow: hidden;">
+                <h3 style="margin-bottom: 0.5rem;">Plano Família</h3>
+                <div style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem;">R$ 0<span style="font-size: 1rem; color: var(--text-dim); font-weight: 400;">/sempre</span></div>
+                <ul style="list-style: none; text-align: left; margin-bottom: 2rem; color: var(--text-dim);">
+                    <li style="margin-bottom: 0.5rem;">✅ Até 20 participantes</li>
+                    <li style="margin-bottom: 0.5rem;">✅ Sorteio Instantâneo</li>
+                    <li style="margin-bottom: 0.5rem;">✅ Lista de Desejos</li>
+                    <li style="margin-bottom: 0.5rem;">❌ Regras de Exclusão</li>
+                </ul>
+                <a href="/login" class="btn btn-outline" style="width: 100%;">Selecionar</a>
+            </div>
+            <!-- PREMIUM -->
+            <div class="card" style="border: 2px solid var(--primary); transform: scale(1.05); position: relative;">
+                <div style="position: absolute; top: 12px; right: -30px; background: var(--primary); color: white; padding: 5px 40px; transform: rotate(45deg); font-size: 0.75rem; font-weight: 800;">POPULAR</div>
+                <h3 style="margin-bottom: 0.5rem;">Plano Business</h3>
+                <div style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem;">R$ 49<span style="font-size: 1rem; color: var(--text-dim); font-weight: 400;">/evento</span></div>
+                <ul style="list-style: none; text-align: left; margin-bottom: 2rem;">
+                    <li style="margin-bottom: 0.5rem;">✅ Participantes ilimitados</li>
+                    <li style="margin-bottom: 0.5rem;">✅ Regras de Exclusão Avançadas</li>
+                    <li style="margin-bottom: 0.5rem;">✅ Chat Anônimo Prioritário</li>
+                    <li style="margin-bottom: 0.5rem;">✅ Suporte 24h</li>
+                </ul>
+                <a href="/login" class="btn btn-primary" style="width: 100%;">Comprar Agora</a>
+            </div>
+        </div>
+    </section>
+{% endblock %}

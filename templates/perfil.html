@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="card" style="max-width: 500px; margin: auto;">
+        <h2>Meu Perfil</h2>
+        <p style="color: var(--text-dim); margin-bottom: 2rem;">Gerencie suas informações e foto.</p>
+        
+        <form action="/perfil" method="POST" enctype="multipart/form-data">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="position: relative; display: inline-block;">
+                    {% if u.foto %}
+                        <img src="data:image/png;base64,{{ u.foto }}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary);">
+                    {% else %}
+                        <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 2px dashed var(--border); margin: auto; display: flex; align-items: center; justify-content: center; font-size: 3rem;">👤</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Nome Completo</label>
+                <input type="text" name="nome" value="{{ u.nome }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ u.email }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Nova Senha (deixe em branco para manter)</label>
+                <input type="password" name="senha" placeholder="••••••••">
+            </div>
+
+            <div class="form-group">
+                <label>Alterar Foto</label>
+                <input type="file" name="foto" accept="image/*">
+            </div>
+
+            <div class="form-group">
+                <label>Minha Lista de Desejos (O que eu quero ganhar?)</label>
+                <textarea name="lista_desejos" rows="4" placeholder="Ex: Livros de ficção, Chocolate amargo, Meias coloridas..." style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; resize: vertical;">{{ u.lista_desejos or '' }}</textarea>
+            </div>
+
+            {% if u.foto %}
+            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; cursor: pointer; color: var(--danger);">
+                <input type="checkbox" name="remover_foto" style="width: auto; margin: 0;"> Remover minha foto atual
+            </label>
+            {% endif %}
+
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">SALVAR PERFIL</button>
+                <a href="/dashboard" class="btn btn-outline" style="flex: 1;">VOLTAR</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}
