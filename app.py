@@ -36,19 +36,23 @@ def enviar_email(assunto, destinatario, html_corpo):
     except Exception as e:
         print(f"Erro ao enviar e-mail: {e}")
 
-# Ordem de prioridade para a URL do Banco de Dados
-database_url = os.getenv('DATABASE_URL') or os.getenv('MYSQL_URL')
+# Ordem de prioridade para a URL do Banco de Dados (Preferência ao MySQL para Railway)
+database_url = os.getenv('MYSQL_URL') or os.getenv('DATABASE_URL')
 
 if not database_url:
-    DB_USER = os.getenv('DB_USER', 'root')
-    DB_PASSWORD = os.getenv('DB_PASSWORD', '1234')
-    DB_NAME = os.getenv('DB_NAME', 'amigo_oculto')
-    DB_HOST = os.getenv('DB_HOST', 'localhost')
-    database_url = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+    # Fallback usando variáveis individuais do Railway
+    user = os.getenv('MYSQLUSER', 'root')
+    password = os.getenv('MYSQLPASSWORD', '1234')
+    host = os.getenv('MYSQLHOST', 'localhost')
+    port = os.getenv('MYSQLPORT', '3306')
+    db_name = os.getenv('MYSQLDATABASE', 'amigo_oculto')
+    database_url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{db_name}"
 else:
     # Garante que a URL use pymysql se for um MySQL
     if database_url.startswith('mysql://'):
         database_url = database_url.replace('mysql://', 'mysql+pymysql://', 1)
+    elif database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
