@@ -16,7 +16,8 @@ app.secret_key = os.getenv('SECRET_KEY', 'chave_secreta_familia')
 
 # CONFIGURAÇÃO DE E-MAIL
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
-app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+mail_port_env = os.getenv('MAIL_PORT', '587')
+app.config['MAIL_PORT'] = int(mail_port_env) if mail_port_env and mail_port_env.isdigit() else 587
 app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True') == 'True'
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
@@ -177,6 +178,10 @@ def logout():
 def dashboard():
     if 'user_id' not in session: return redirect(url_for('login'))
     usuario = Usuario.query.get(session['user_id'])
+    if not usuario:
+        session.clear()
+        return redirect(url_for('login'))
+    
     meus_eventos = EventoParticipante.query.filter_by(usuario_id=usuario.id).all()
     # Mensagens recebidas do meu "Amigo Oculto" (quem me tirou)
     # Aqui remetente é o cara que me tirou, destinatario sou eu.
@@ -481,6 +486,16 @@ def cancelar_sorteio():
 
 with app.app_context():
     db.create_all()
+    # Criar admin padrão se o banco estiver vazio
+    if Usuario.query.count() == 0:
+        admin = Usuario(
+            nome="Admin",
+            email="admin@admin.com",
+            senha=generate_password_hash("admin123"),
+            is_admin=True
+        )
+        db.session.add(admin)
+        db.session.commit()
 
 if __name__ == '__main__':
     app.run(debug=True)
