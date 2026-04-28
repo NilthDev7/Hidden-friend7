@@ -35,13 +35,21 @@ def enviar_email(assunto, destinatario, html_corpo):
     except Exception as e:
         print(f"Erro ao enviar e-mail: {e}")
 
-# CONFIGURAÇÃO DO BANCO (Tenta pegar do ambiente, senão usa o local)
-DB_USER = os.getenv('DB_USER', 'root')
-DB_PASSWORD = os.getenv('DB_PASSWORD', '1234')
-DB_NAME = os.getenv('DB_NAME', 'amigo_oculto')
-DB_HOST = os.getenv('DB_HOST', 'localhost')
+# Ordem de prioridade para a URL do Banco de Dados
+database_url = os.getenv('DATABASE_URL') or os.getenv('MYSQL_URL')
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+if not database_url:
+    DB_USER = os.getenv('DB_USER', 'root')
+    DB_PASSWORD = os.getenv('DB_PASSWORD', '1234')
+    DB_NAME = os.getenv('DB_NAME', 'amigo_oculto')
+    DB_HOST = os.getenv('DB_HOST', 'localhost')
+    database_url = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+else:
+    # Garante que a URL use pymysql se for um MySQL
+    if database_url.startswith('mysql://'):
+        database_url = database_url.replace('mysql://', 'mysql+pymysql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True}
 
@@ -471,7 +479,8 @@ def cancelar_sorteio():
     db.session.commit()
     return redirect(url_for('gerenciar_evento', id=ev.id))
 
+with app.app_context():
+    db.create_all()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
