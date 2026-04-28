@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_mail import Mail, Message
 import random
 import base64
 import time
@@ -12,6 +13,27 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'chave_secreta_familia')
+
+# CONFIGURAÇÃO DE E-MAIL
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True') == 'True'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', app.config['MAIL_USERNAME'])
+
+mail = Mail(app)
+
+def enviar_email(assunto, destinatario, html_corpo):
+    if not app.config['MAIL_USERNAME']:
+        print(f"DEBUG: E-mail não enviado (Sem credenciais): {assunto} para {destinatario}")
+        return
+    try:
+        msg = Message(assunto, recipients=[destinatario])
+        msg.html = html_corpo
+        mail.send(msg)
+    except Exception as e:
+        print(f"Erro ao enviar e-mail: {e}")
 
 # CONFIGURAÇÃO DO BANCO (Tenta pegar do ambiente, senão usa o local)
 DB_USER = os.getenv('DB_USER', 'root')
@@ -246,6 +268,23 @@ def enviar_mensagem_api():
         msg = MensagemSecreta(evento_id=e_id, remetente_id=session['user_id'], destinatario_id=d_id, texto=txt)
         db.session.add(msg)
         db.session.commit()
+
+        # Notificar Destinatário via E-mail
+        corpo = f"""
+        <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+            <h2 style="color: #6366f1;">Você recebeu uma mensagem secreta! 📬</h2>
+            <p>Olá!</p>
+            <p>Seu <strong>Amigo Oculto</strong> (ou quem você tirou) acaba de te enviar uma mensagem no <strong>SecretJoy</strong>.</p>
+            <div style="background: #f9f9f9; padding: 15px; border-left: 4px solid #6366f1; font-style: italic; margin: 20px 0;">
+                "{txt[:50]}..."
+            </div>
+            <p>Para ler a mensagem completa e responder, acesse seu Dashboard:</p>
+            <a href="{request.url_root}dashboard" style="display: inline-block; padding: 12px 25px; background: #6366f1; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">Ver Mensagem e Responder</a>
+            <p style="color: #888; font-size: 0.8rem; margin-top: 20px;">Este é um e-mail automático do SecretJoy.</p>
+        </div>
+        """
+        enviar_email("Nova Mensagem Secreta no SecretJoy! 💬", msg.destinatario.email, corpo)
+
     return {"status": "ok"}
 
 @app.route('/chat/enviar', methods=['POST'])
@@ -402,7 +441,25 @@ def sortear_evento():
         
     ev.sorteado = True
     db.session.commit()
-    flash('Sorteio realizado com sucesso respeitando as restrições!', 'success')
+
+    # Notificar TODOS os participantes via e-mail
+    for p in parts:
+        corpo = f"""
+        <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+            <h2 style="color: #6366f1;">O sorteio do {ev.nome} foi realizado! 🎁</h2>
+            <p>Olá, <strong>{p.usuario.nome}</strong>!</p>
+            <p>O administrador acaba de realizar o sorteio do Amigo Oculto.</p>
+            <p>Agora você já pode descobrir quem você tirou e começar a planejar o presente perfeito!</p>
+            <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>Orçamento Sugerido:</strong> R$ {ev.valor_min} - R$ {ev.valor_max}</p>
+            </div>
+            <a href="{request.url_root}dashboard" style="display: inline-block; padding: 12px 25px; background: #6366f1; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">VER MEU AMIGO OCULTO 🎁</a>
+            <p style="color: #888; font-size: 0.8rem; margin-top: 20px;">Divirta-se e feliz sorteio!</p>
+        </div>
+        """
+        enviar_email(f"Sorteio Realizado: {ev.nome} 🎊", p.usuario.email, corpo)
+
+    flash('Sorteio realizado com sucesso e todos foram notificados!', 'success')
     return redirect(url_for('gerenciar_evento', id=ev.id))
 
 @app.route('/evento/cancelar', methods=['POST'])
